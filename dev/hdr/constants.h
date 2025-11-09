@@ -5,10 +5,8 @@ extern const double h;
 
 extern const double hbar;
 
-extern const double hbar_facile;
+extern double b_z;
 
-extern const double m_facile;
-
-extern const double w_facile;
+extern double b_ortho;
 
 #endif // CONSTANTS_H
