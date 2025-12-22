@@ -1,9 +1,8 @@
-#include <iostream>
 #include "../hdr/polynomials.h"
 
 Polynomials::Polynomials(int n) : n(n), m(0) {} 
 
-Polynomials::Polynomials(int n, int m) : n(n), m(m){}
+Polynomials::Polynomials(int n, int m) : n(n), m(m) {}
 
 arma::mat Polynomials::calcHermit(arma::vec zeta_vec)
 {
@@ -19,6 +18,7 @@ arma::mat Polynomials::calcHermit(arma::vec zeta_vec)
             hermit.col(i) = 2*zeta_vec % hermit.col(i - 1) - 2*(i - 1)*hermit.col(i-2);
         }
     }
+
     return hermit;
 }
 
@@ -43,6 +43,6 @@ arma::cube Polynomials::calcGeneralizedLaguerre(arma::vec eta_vec)
         }
         laguerre.slice(m_i) = slice;    
     }
+    
     return laguerre;
 }
-

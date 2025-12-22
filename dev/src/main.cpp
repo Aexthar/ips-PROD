@@ -1,44 +1,74 @@
 #include <iostream>
 #include <armadillo>
-#include "../hdr/polynomials.h"
-#include "../hdr/trunc.h"
-#include "../hdr/basis.h"
 #include "../hdr/constants.h"
+#include "../hdr/utils.h"
+#include "../hdr/rho.h"
 
-int main(int argc, char* argv[]){
-    
-    std::cout << "Hermit for n = 5 :" << std::endl;
-    arma::vec zVals = {-3.1, -2.3, -1.0, -0.3, 0.1, 4.3, 9.2, 13.7};
-    Polynomials poly(5);
-    std::cout << poly.calcHermit(zVals) << std::endl;
-
-    std::cout << "Generalized Laguerre for n = 3, m = 5 :" << std::endl;
-    zVals = {0.1, 0.3, 1.2, 1.8, 2.0, 2.5, 7.1, 11.1};
-    Polynomials poly2(3, 5);
-    arma::cube poly2Cube = poly2.calcGeneralizedLaguerre(zVals);
-    for(int i = 0; i < (int)poly2Cube.n_slices; i++){
-        std::cout << "[slice " << i << "]" << std::endl << poly2Cube.slice(i) << std::endl;
-    }
-    
+int main(int argc, char* argv[])
+{
     int N = 14;
     double Q = 1.3;
-    Trunc trunc(N,Q);
-    std::cout << "mMax for N = 14, Q = 1.3 is : "<< trunc.calc_mMax() << std::endl;
-    for(int i = 0; i < 14; i++){
-        std::cout << " For m = " << i << ", nMax is : " << trunc.calc_nMax(i) << std::endl;
-    }
-    
+
     arma::vec z = {-10.1, -8.4, -1.0, 0.0, 0.1, 4.3, 9.2, 13.7};
     arma::vec r = {3.1, 2.3, 1.0, 0.0, 0.1, 4.3, 9.2, 13.7};
     b_z = 2.829683956491218;
     b_ortho = 1.935801664793151;
 
-    Basis basis0(8,2,15,z,r);
+    Rho rho(N, Q);
+    arma::mat res = rho.calcNaive(r, z);
+    std::cout << res << std::endl;
 
-    std::cout << "m, n = 0, R = " << basis0.calcR(0,0) << std::endl;
-    std::cout << "m = 8, n = 2, R = " << basis0.calcR(8,2) << std::endl;
-    std::cout << "n_z = 0, Z = " << basis0.calcZ(0) << std::endl;
-    std::cout << "n_z = 15, Z = " << basis0.calcZ(15) << std::endl;
+    arma::mat res2 = rho.calcOpti(r, z);
+    std::cout << res2 << std::endl;
+
+    arma::mat res3 = rho.calcOptiPlus(r, z);
+    std::cout << res3 << std::endl;
+
+    arma::mat res4 = rho.calcOptiPlusBis(r, z);
+    std::cout << res4 << std::endl;
+
+    arma::vec x_3d(xyNbPoints);
+    arma::vec y_3d(xyNbPoints);
+    arma::vec z_3d(zNbPoints);
+
+    arma::cube res_3d = arma::cube(xyNbPoints, zNbPoints, xyNbPoints, arma::fill::zeros);
+    
+    for(int i = 0; i < xyNbPoints; i++)
+    {
+        x_3d(i) = xyVal_min + (xyVal_max - xyVal_min)*i/(xyNbPoints - 1);
+        y_3d(i) = xyVal_min + (xyVal_max - xyVal_min)*i/(xyNbPoints - 1);
+    }
+
+    for(int i = 0; i < zNbPoints; i++)
+    {
+        z_3d(i) = zVal_min + (zVal_max - zVal_min)*i/(zNbPoints - 1);
+    }
+
+    arma::vec r_3d = arma::vec(xyNbPoints);
+    x_3d.transform([] (double val) { return(val*val);});
+
+    for(int i = 0; i < xyNbPoints; i++)
+    {
+        r_3d = y_3d(i)*y_3d(i) + x_3d;
+        r_3d.transform([] (double val) { return(sqrt(val));});
+
+        res_3d.slice(i) = rho.calcOptiPlusBis(r_3d, z_3d);
+    }
+
+    std::string exePath;
+    char pBuf[1024];
+    size_t len = sizeof(pBuf);
+    int bytes = readlink("/proc/self/exe", pBuf, len);
+    if(bytes >= 0){
+        exePath = pBuf;
+        size_t limit = exePath.find_last_of("/");
+        exePath = exePath.substr(0, limit + 1);
+    }
+
+    std::string input = Utils::cubeToDf3(res_3d);
+    std::ofstream out(exePath + "sphere.df3");
+    out << input;
+    out.close();
 
     return 0;
 }

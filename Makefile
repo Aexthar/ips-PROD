@@ -10,10 +10,13 @@ TARGET = ./out/main
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)/main.o $(OBJ)/polynomials.o $(OBJ)/constants.o $(OBJ)/trunc.o $(OBJ)/basis.o
+$(TARGET): $(OBJ)/main.o $(OBJ)/polynomials.o $(OBJ)/constants.o $(OBJ)/trunc.o $(OBJ)/basis.o $(OBJ)/rho.o $(OBJ)/utils.o
 	$(CC) -L$(ARMALIB) -larmadillo $^ -o $@
 
-$(OBJ)/main.o: $(SRC)/main.cpp $(OBJ)/polynomials.o $(OBJ)/constants.o $(OBJ)/trunc.o $(OBJ)/basis.o
+$(OBJ)/main.o: $(SRC)/main.cpp $(OBJ)/polynomials.o $(OBJ)/constants.o $(OBJ)/trunc.o $(OBJ)/basis.o $(OBJ)/rho.o $(OBJ)/utils.o
+	$(CC) -c $(CFLAGS) $< -I $(ARMAINCLUDE) -o $@
+
+$(OBJ)/rho.o : $(SRC)/rho.cpp $(HDR)/rho.h $(OBJ)/basis.o
 	$(CC) -c $(CFLAGS) $< -I $(ARMAINCLUDE) -o $@
 
 $(OBJ)/basis.o : $(SRC)/basis.cpp $(HDR)/basis.h $(OBJ)/constants.o $(OBJ)/polynomials.o
@@ -23,6 +26,9 @@ $(OBJ)/trunc.o: $(SRC)/trunc.cpp $(HDR)/trunc.h $(OBJ)/constants.o
 	$(CC) -c $(CFLAGS) $< -I $(ARMAINCLUDE) -o $@
 
 $(OBJ)/polynomials.o: $(SRC)/polynomials.cpp $(HDR)/polynomials.h $(OBJ)/constants.o
+	$(CC) -c $(CFLAGS) $< -I $(ARMAINCLUDE) -o $@
+
+$(OBJ)/utils.o: $(SRC)/utils.cpp $(HDR)/utils.h
 	$(CC) -c $(CFLAGS) $< -I $(ARMAINCLUDE) -o $@
 
 $(OBJ)/constants.o: $(SRC)/constants.cpp $(HDR)/constants.h
@@ -42,4 +48,4 @@ init:
 clean: 
 	rm -f $(OBJ)/*.o
 	rm -f out/*
-
+	rm -f visu.png
