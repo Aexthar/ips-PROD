@@ -1,5 +1,4 @@
 raw_lib/
 out/
-dev/obj/
-rho.arma
+obj/
 visu.png

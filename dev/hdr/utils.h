@@ -7,6 +7,8 @@ class Utils
 {   
     public:
         static std::string cubeToDf3(const arma::cube &m);
+
+        static std::string getWrkDir();
 };
 
 #endif // UTILS_H

@@ -9,6 +9,8 @@ double b_z;
 
 double b_ortho;
 
+arma::mat rho_ab;
+
 const double xyVal_min = -10.0;
  
 const double xyVal_max = 10.0;

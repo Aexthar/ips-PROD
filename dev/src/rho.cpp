@@ -1,5 +1,6 @@
 #include "../hdr/rho.h"
 #include <iostream>
+#include "../hdr/constants.h"
 #include "../hdr/basis.h"
 #include "../hdr/polynomials.h"
 
@@ -26,12 +27,7 @@ Rho::Rho(uint N, double Q) : trunc(N, Q)
 
 arma::mat Rho::calcNaive(arma::vec r, arma::vec z)
 {
-    arma::mat rho_ab;
-    rho_ab.load("/home/aexthar/ips-PROD/dev/src/rho.arma", arma::arma_ascii);
     arma::mat result = arma::zeros(r.n_rows, z.n_rows);
-
-    arma::wall_clock wclock;
-    wclock.tic();
 
     for(int m_a = 0; m_a < trunc.calc_mMax(); m_a++)
     {
@@ -63,42 +59,36 @@ arma::mat Rho::calcNaive(arma::vec r, arma::vec z)
             }
         }
     }
-    double length = wclock.toc();
-    std::cout << "Computing duration : " << length << " [s]." << std::endl;
+
     return result;
 }
 
 arma::mat Rho::calcOpti(arma::vec r, arma::vec z)
 {
-    arma::mat rho_ab;
-    rho_ab.load("/home/aexthar/ips-PROD/dev/src/rho.arma", arma::arma_ascii);
     arma::mat result = arma::zeros(r.n_rows, z.n_rows);
-
-    arma::wall_clock wclock;
-    wclock.tic();
 
     for(int m_a = 0; m_a < trunc.calc_mMax(); m_a++)
     {
         for(int n_a = 0; n_a < trunc.calc_nMax(m_a); n_a++)
         {
-            Basis basisFuncA_R(m_a, n_a, z, r);
+            Basis basisFuncA_R(m_a, n_a, r);
             arma::vec R_a = basisFuncA_R.calcR(m_a, n_a);
 
             for(int n_z_a = 0; n_z_a < trunc.calc_nzMax(m_a, n_a); n_z_a++)
             {
-                Basis basisFuncA_Z(n_z_a, z, r);
+                Basis basisFuncA_Z(n_z_a, z);
                 arma::vec Z_a = basisFuncA_Z.calcZ(n_z_a);
                 arma::mat psiA = R_a*Z_a.t();
 
                 arma::mat tmp = arma::zeros(r.n_rows, z.n_rows);
                 for(int n_b = 0; n_b < trunc.calc_nMax(m_a); n_b++)
                 {
-                    Basis basisFuncB_R(m_a, n_b, z, r);
+                    Basis basisFuncB_R(m_a, n_b, r);
                     arma::vec R_b = basisFuncB_R.calcR(m_a, n_b);
 
                     for(int n_z_b = 0; n_z_b < trunc.calc_nzMax(m_a, n_b); n_z_b++)
                     {
-                        Basis basisFuncB_Z(n_z_b, z, r);
+                        Basis basisFuncB_Z(n_z_b, z);
                         arma::vec Z_b = basisFuncB_Z.calcZ(n_z_b);
                         arma::mat psiB = R_b*Z_b.t();
                         tmp += rho_ab(rhoIdx(m_a, n_a, n_z_a), rhoIdx(m_a, n_b, n_z_b))* psiB;
@@ -108,30 +98,24 @@ arma::mat Rho::calcOpti(arma::vec r, arma::vec z)
             }
         }
     }
-    double length = wclock.toc();
-    std::cout << "Computing duration : " << length << " [s]." << std::endl;
+
     return result;
 }
 
 arma::mat Rho::calcOptiPlus(arma::vec r, arma::vec z)
 {
-    arma::mat rho_ab;
-    rho_ab.load("/home/aexthar/ips-PROD/dev/src/rho.arma", arma::arma_ascii);
     arma::mat result = arma::zeros(r.n_rows, z.n_rows);
-
-    arma::wall_clock wclock;
-    wclock.tic();
 
     for(int m_a = 0; m_a < trunc.calc_mMax(); m_a++)
     {
         for(int n_a = 0; n_a < trunc.calc_nMax(m_a); n_a++)
         {
-            Basis basisFuncA_R(m_a, n_a, z, r);
+            Basis basisFuncA_R(m_a, n_a, r);
             arma::vec R_a = basisFuncA_R.calcR(m_a, n_a);
 
             for(int n_z_a = 0; n_z_a < trunc.calc_nzMax(m_a, n_a); n_z_a++)
             {
-                Basis basisFuncA_Z(n_z_a, z, r);
+                Basis basisFuncA_Z(n_z_a, z);
                 arma::vec Z_a = basisFuncA_Z.calcZ(n_z_a);
                 arma::mat psiA = R_a*Z_a.t();
 
@@ -139,14 +123,14 @@ arma::mat Rho::calcOptiPlus(arma::vec r, arma::vec z)
                 arma::mat result_aIsb = arma::zeros(r.n_rows, z.n_rows);
                 for(int n_b = 0; n_b < trunc.calc_nMax(m_a); n_b++)
                 {
-                    Basis basisFuncB_R(m_a, n_b, z, r);
+                    Basis basisFuncB_R(m_a, n_b, r);
                     arma::vec R_b = basisFuncB_R.calcR(m_a, n_b);
 
                     for(int n_z_b = 0; n_z_b < trunc.calc_nzMax(m_a, n_b); n_z_b++)
                     {
                         if(rhoIdx(m_a, n_a, n_z_a) > rhoIdx(m_a, n_b, n_z_b))
                         {
-                            Basis basisFuncB_Z(n_z_b, z, r);
+                            Basis basisFuncB_Z(n_z_b, z);
                             arma::vec Z_b = basisFuncB_Z.calcZ(n_z_b);
                             arma::mat psiB = R_b*Z_b.t();
 
@@ -154,7 +138,7 @@ arma::mat Rho::calcOptiPlus(arma::vec r, arma::vec z)
                         }
                         else if(rhoIdx(m_a, n_a, n_z_a) == rhoIdx(m_a, n_b, n_z_b))
                         {
-                            Basis basisFuncB_Z(n_z_b, z, r);
+                            Basis basisFuncB_Z(n_z_b, z);
                             arma::vec Z_b = basisFuncB_Z.calcZ(n_z_b);
                             arma::mat psiB = R_b*Z_b.t();
 
@@ -167,46 +151,40 @@ arma::mat Rho::calcOptiPlus(arma::vec r, arma::vec z)
             }
         }
     }
-    double length = wclock.toc();
-    std::cout << "Computing duration : " << length << " [s]." << std::endl;
+
     return result;
 }
 
 arma::mat Rho::calcOptiPlusBis(arma::vec r, arma::vec z)
 {
-    arma::mat rho_ab;
-    rho_ab.load("/home/aexthar/ips-PROD/dev/src/rho.arma", arma::arma_ascii);
 
     arma::mat result = arma::zeros(r.n_rows, z.n_rows);
     arma::mat result_aNotb = arma::zeros(r.n_rows, z.n_rows);
     arma::mat result_aIsb = arma::zeros(r.n_rows, z.n_rows);
 
-    arma::wall_clock wclock;
-    wclock.tic();
-
     for(int m_a = 0; m_a < trunc.calc_mMax(); m_a++)
     {
         for(int n_a = 0; n_a < trunc.calc_nMax(m_a); n_a++)
         {
-            Basis basisFuncA_R(m_a, n_a, z, r);
+            Basis basisFuncA_R(m_a, n_a, r);
             arma::vec R_a = basisFuncA_R.calcR(m_a, n_a);
 
             for(int n_z_a = 0; n_z_a < trunc.calc_nzMax(m_a, n_a); n_z_a++)
             {
-                Basis basisFuncA_Z(n_z_a, z, r);
+                Basis basisFuncA_Z(n_z_a, z);
                 arma::vec Z_a = basisFuncA_Z.calcZ(n_z_a);
                 arma::mat psiA = R_a*Z_a.t();
 
                 for(int n_b = 0; n_b < trunc.calc_nMax(m_a); n_b++)
                 {
-                    Basis basisFuncB_R(m_a, n_b, z, r);
+                    Basis basisFuncB_R(m_a, n_b, r);
                     arma::vec R_b = basisFuncB_R.calcR(m_a, n_b);
 
                     for(int n_z_b = 0; n_z_b < trunc.calc_nzMax(m_a, n_b); n_z_b++)
                     {
                         if(rhoIdx(m_a, n_a, n_z_a) > rhoIdx(m_a, n_b, n_z_b))
                         {
-                            Basis basisFuncB_Z(n_z_b, z, r);
+                            Basis basisFuncB_Z(n_z_b, z);
                             arma::vec Z_b = basisFuncB_Z.calcZ(n_z_b);
                             arma::mat psiB = R_b*Z_b.t();
 
@@ -214,7 +192,7 @@ arma::mat Rho::calcOptiPlusBis(arma::vec r, arma::vec z)
                         }
                         else if(rhoIdx(m_a, n_a, n_z_a) == rhoIdx(m_a, n_b, n_z_b))
                         {
-                            Basis basisFuncB_Z(n_z_b, z, r);
+                            Basis basisFuncB_Z(n_z_b, z);
                             arma::vec Z_b = basisFuncB_Z.calcZ(n_z_b);
                             arma::mat psiB = R_b*Z_b.t();
 
@@ -227,7 +205,6 @@ arma::mat Rho::calcOptiPlusBis(arma::vec r, arma::vec z)
         }
     }
     result += 2*result_aIsb + result_aNotb; 
-    double length = wclock.toc();
-    std::cout << "Computing duration : " << length << " [s]." << std::endl;
+
     return result;
 }

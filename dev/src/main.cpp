@@ -9,23 +9,41 @@ int main(int argc, char* argv[])
     int N = 14;
     double Q = 1.3;
 
+    std::string exePath = Utils::getWrkDir();
+
     arma::vec z = {-10.1, -8.4, -1.0, 0.0, 0.1, 4.3, 9.2, 13.7};
     arma::vec r = {3.1, 2.3, 1.0, 0.0, 0.1, 4.3, 9.2, 13.7};
     b_z = 2.829683956491218;
     b_ortho = 1.935801664793151;
+    rho_ab.load(exePath + "../rho.arma", arma::arma_ascii);
 
     Rho rho(N, Q);
+
+    arma::wall_clock wclock;
+
+    wclock.tic();
     arma::mat res = rho.calcNaive(r, z);
+    double length = wclock.toc();
     std::cout << res << std::endl;
+    std::cout << "Computing duration : " << length << " [s]." << std::endl;
 
+    wclock.tic();
     arma::mat res2 = rho.calcOpti(r, z);
+    length = wclock.toc();
     std::cout << res2 << std::endl;
+    std::cout << "Computing duration : " << length << " [s]." << std::endl;
 
+    wclock.tic();
     arma::mat res3 = rho.calcOptiPlus(r, z);
+    length = wclock.toc();
     std::cout << res3 << std::endl;
+    std::cout << "Computing duration : " << length << " [s]." << std::endl;
 
+    wclock.tic();
     arma::mat res4 = rho.calcOptiPlusBis(r, z);
+    length = wclock.toc();
     std::cout << res4 << std::endl;
+    std::cout << "Computing duration : " << length << " [s]." << std::endl;
 
     arma::vec x_3d(xyNbPoints);
     arma::vec y_3d(xyNbPoints);
@@ -53,16 +71,6 @@ int main(int argc, char* argv[])
         r_3d.transform([] (double val) { return(sqrt(val));});
 
         res_3d.slice(i) = rho.calcOptiPlusBis(r_3d, z_3d);
-    }
-
-    std::string exePath;
-    char pBuf[1024];
-    size_t len = sizeof(pBuf);
-    int bytes = readlink("/proc/self/exe", pBuf, len);
-    if(bytes >= 0){
-        exePath = pBuf;
-        size_t limit = exePath.find_last_of("/");
-        exePath = exePath.substr(0, limit + 1);
     }
 
     std::string input = Utils::cubeToDf3(res_3d);

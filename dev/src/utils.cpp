@@ -28,3 +28,19 @@ std::string Utils::cubeToDf3(const arma::cube &m)
   
   return ss.str();
 }
+
+std::string Utils::getWrkDir()
+{
+  std::string exePath;
+  char pBuf[1024];
+  size_t len = sizeof(pBuf);
+  int bytes = readlink("/proc/self/exe", pBuf, len);
+  if(bytes >= 0)
+  {
+    exePath = pBuf;
+    size_t limit = exePath.find_last_of("/");
+    exePath = exePath.substr(0, limit + 1);
+  }
+
+  return exePath;
+}

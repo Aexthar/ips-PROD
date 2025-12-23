@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <armadillo>
+
 extern const double h;
 
 extern const double hbar;
@@ -8,6 +10,8 @@ extern const double hbar;
 extern double b_z;
 
 extern double b_ortho;
+
+extern arma::mat rho_ab;
 
 extern const double xyVal_min;
 
